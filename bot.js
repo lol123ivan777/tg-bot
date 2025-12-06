@@ -27,6 +27,10 @@ bot.onText(/\/start/, msg => {
     "Не знаешь что прыг-нуть?🤸‍ Сейчас подберем \n\n" +
     "Выбирай, может пятерик хочешь😎\n" +
 
+  bot.sendMessage(chatId, greeting, {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "ComboWombo: , callback_data:
 
 
 
