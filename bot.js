@@ -30,7 +30,13 @@ bot.onText(/\/start/, msg => {
   bot.sendMessage(chatId, greeting, {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "ComboWombo: , callback_data:
+        [{ text: "ComboWombo": , callback_data: "explain_combo }],
+        [{ text: "ПолеЧудес": , callback_data:"explain_combo }]
+      ]
+    }
+  });
+});
+     
 
 
 
