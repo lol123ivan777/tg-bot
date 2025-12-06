@@ -7,7 +7,13 @@ const combos = require("./combos.js");
 //-------превью все трюкво----
 function getAllTricksPreviw() {
   return (
-    " uno  " + combos.getUno ()
+    " uno  " + combos.getUno () + "\n\" +
+    " dos  " + combos.getDos () + "\n\" +
+    " tri  " + combos.getTri () + "\n\" +
+    " dos  " + combos.getComboCherez () + "\n\" +
+    " uno  " + combos.getComboVTemp () + "\n\" +
+    " dos  " + combos.getCombohard ()
+
   );
 }
 
