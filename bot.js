@@ -33,21 +33,33 @@ const EM = {
 // ============ UNIVERSAL SNAP FX ============
 async function thanosEdit(chatId, msgId, finalText, finalKb) {
   try {
-    const steps = [
-      "🫰 Щёлк...",
-      "🌫️ Реальность рассыпается...",
-      "✨ Формирую новую вселенную..."
+    const frames = [
+      "🫰",
+      "🫰.",
+      "🫰..",
+      "🫰...",
+      "🌫️",
+      "🌫️.",
+      "🌫️..",
+      "🌫️...",
+      "✨",
+      "✨.",
+      "✨..",
+      "✨..."
     ];
 
-    for (const t of steps) {
-      await bot.editMessageText(t, {
+    // плавное растворение
+    for (const f of frames) {
+      await bot.editMessageText(f, {
         chat_id: chatId,
         message_id: msgId
       });
-      await new Promise(res => setTimeout(res, 180));
+      await new Promise(res => setTimeout(res, 200));  
+      // ставь 200–260 если хочешь ещё медленнее
     }
 
-    return bot.editMessageText(finalText, {
+    // финальное появление
+    await bot.editMessageText(finalText, {
       chat_id: chatId,
       message_id: msgId,
       parse_mode: "HTML",
@@ -56,6 +68,7 @@ async function thanosEdit(chatId, msgId, finalText, finalKb) {
 
   } catch (_) {}
 }
+
 
 // ============ KEYBOARDS ============
 const mainMenu = {
