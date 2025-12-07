@@ -121,7 +121,7 @@ async function animateAndEdit(chatId, title, generatorFn, loading, keyboard) {
   } catch (_) {}
 
   const msg =
-    "<pre>" + EM.brand + " — TRICK MACHINE — RIZZ MODE</pre>\n\n" +
+    "<pre>" + EM.brand + " — TRICK MACHINE — IVAN MODE</pre>\n\n" +
     "<b>" + escapeHtml(title) + "</b>\n\n" +
     "<code>" + escapeHtml(content) + "</code>\n\n" +
     EM.success + " <i>Нажми оценку или назад</i>";
@@ -146,7 +146,7 @@ bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
 
   const banner =
-    EM.brand + " <b>TRICK MACHINE — RIZZ EDITION</b>\n\n" +
+    EM.brand + " <b>TRICK MACHINE — IVAN EDITION</b>\n\n" +
     "Добро. Тёмно. Опасно.\n" +
     "Выбирай режим — и получай трюк, который можно либо выполнить, либо сломать.";
 
