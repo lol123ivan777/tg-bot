@@ -9,256 +9,174 @@ const {
   getComboCherez,
   getComboVTemp,
   getComboHard,
-  getAny,
+  getAny
 } = require("./tricks");
 
 const { edit } = require("./utils");
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-/**
- * Стикеры и картинки
- * goodStickers / badStickers — file_id стикеров (ниже есть шаги, как их получить)
- */
-const goodStickers = [
-  "CAACAgIAAxkBAGOOD1", // пример, сюда вставишь свои file_id
-];
-const badStickers = [
-  "CAACAgIAAxkBABAD1",
-];
+// ================== БОЛЬШИЕ КНОПКИ ==================
 
-// Картинка‑баннер для /start (можно URL или локальный путь)
-const startBanner = "https://example.com/eternity_banner.jpg";
-
-// ===== Клавиатуры =====
-const mainMenuKb = {
-  inline_keyboard: [
-    [{ text: "🎩 UNO / DOS / TRI / ЖЕСТЬ", callback_data: "uno_menu" }],
-    [{ text: "🌀 Комбо блок", callback_data: "combo_menu" }],
-    [{ text: "🎲 Поле чудес (рандом)", callback_data: "any" }],
-    [{ text: "📚 Справка", callback_data: "help" }],
-  ],
+const mainMenu = {
+  reply_markup: {
+    resize_keyboard: true,
+    keyboard: [
+      [{ text: "🎩 UNO / DOS / TRI / ЖЕСТЬ" }],
+      [{ text: "🌀 Комбо блок" }],
+      [{ text: "🎲 Поле чудес (рандом)" }],
+      [{ text: "📚 Справка" }]
+    ]
+  }
 };
 
-const unoMenuKb = {
-  inline_keyboard: [
-    [{ text: "UNO — одинарные", callback_data: "uno" }],
-    [{ text: "DOS — двойные", callback_data: "dos" }],
-    [{ text: "TRI — тройные", callback_data: "tri" }],
-    [{ text: "ЖЕСТЬ — очень сложные", callback_data: "hard" }],
-    [{ text: "⬅️ Назад в меню", callback_data: "back_main" }],
-  ],
+const unoMenu = {
+  reply_markup: {
+    resize_keyboard: true,
+    keyboard: [
+      [{ text: "UNO — одинарные" }],
+      [{ text: "DOS — двойные" }],
+      [{ text: "TRI — тройные" }],
+      [{ text: "ЖЕСТЬ — очень сложные" }],
+      [{ text: "⬅️ Назад" }]
+    ]
+  }
 };
 
-const comboMenuKb = {
-  inline_keyboard: [
-    [{ text: "Комбо через темп", callback_data: "combo_cherez" }],
-    [{ text: "Комбо в темп", callback_data: "combo_vtemp" }],
-    [{ text: "Комбо вомбо (hardcore)", callback_data: "combo_hard" }],
-    [{ text: "⬅️ Назад в меню", callback_data: "back_main" }],
-  ],
+const comboMenu = {
+  reply_markup: {
+    resize_keyboard: true,
+    keyboard: [
+      [{ text: "Комбо через темп" }],
+      [{ text: "Комбо в темп" }],
+      [{ text: "Комбо вомбо (hardcore)" }],
+      [{ text: "⬅️ Назад" }]
+    ]
+  }
 };
 
-// Клава для рейтинга
-const rateKb = {
-  inline_keyboard: [
-    [
-      { text: "🔥 Норм", callback_data: "rate_good" },
-      { text: "💩 Так себе", callback_data: "rate_bad" },
-    ],
-    [{ text: "⬅️ Назад в меню", callback_data: "back_main" }],
-  ],
+const rateMenu = {
+  reply_markup: {
+    resize_keyboard: true,
+    keyboard: [
+      [
+        { text: "🔥 Норм" },
+        { text: "💩 Так себе" }
+      ],
+      [{ text: "⬅️ Назад" }]
+    ]
+  }
 };
 
-// ===== START =====
-bot.onText(/\/start/, async (msg) => {
+// ================== START ==================
+
+bot.onText(/\/start/, async msg => {
   const chatId = msg.chat.id;
 
-  // Картинка / мем при запуске
-  try {
-    await bot.sendPhoto(chatId, startBanner, {
-      caption: "Eternity — генератор трюков",
-    });
-  } catch (e) {
-    console.error("Ошибка отправки баннера:", e.message);
-  }
-
   const intro =
-  "👋 <b>Здарова, артист.</b>\n\n" +
-  "Ты попал в генератор трюков.\n" +
-  "Жми кнопки под сообщением и лови идеи для тренировок.\n\n" +
-  "<b>Что тут есть:</b>\n" +
-  "• UNO / DOS / TRI / ЖЕСТЬ — одиночные трюки по уровням\n" +
-  "• Комбо через темп, в темп и комбо вомбо\n" +
-  "• Поле чудес — случайный трюк\n";
+    "👋 <b>Здарова, артист.</b>\n\n" +
+    "Ты попал в генератор трюков.\n" +
+    "Жми кнопки и лови идеи для тренировок.\n\n" +
+    "<b>Что доступно:</b>\n" +
+    "• UNO / DOS / TRI / ЖЕСТЬ\n" +
+    "• Комбо: через темп, в темп, вомбо\n" +
+    "• Поле чудес — рандомный трюк\n";
 
   await bot.sendMessage(chatId, intro, {
     parse_mode: "HTML",
-    reply_markup: mainMenuKb,
+    reply_markup: mainMenu.reply_markup
   });
 });
 
-// ===== CALLBACKS =====
-bot.on("callback_query", async (q) => {
-  const chatId = q.message.chat.id;
-  const msgId = q.message.message_id;
+// ================== ЛОГИКА МЕНЮ ==================
 
-  switch (q.data) {
-    case "back_main":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        "🏠 <b>Главное меню</b>
-Выбирай, что сгенерировать:",
-        mainMenuKb
-      );
+bot.on("message", async msg => {
+  const text = msg.text;
+  const chatId = msg.chat.id;
 
-    case "uno_menu":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        "🎩 <b>Одинарные трюки</b>
-Выбери уровень:",
-        unoMenuKb
-      );
+  // Главное меню
+  if (text === "🎩 UNO / DOS / TRI / ЖЕСТЬ") {
+    return bot.sendMessage(chatId, "🎩 Выбери уровень:", unoMenu);
+  }
 
-    case "combo_menu":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        "🌀 <b>Комбо блок</b>
-Выбери тип комбо:",
-        comboMenuKb
-      );
+  if (text === "🌀 Комбо блок") {
+    return bot.sendMessage(chatId, "🌀 Выбери тип комбо:", comboMenu);
+  }
 
-    // Одиночные трюки
-    case "uno":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        `UNO — одинарный трюк:
-${getUno()}`,
-        rateKb
-      );
+  if (text === "🎲 Поле чудес (рандом)") {
+    return bot.sendMessage(chatId, "🎲 Случайный трюк:\n" + getAny(), rateMenu);
+  }
 
-    case "dos":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        `DOS — двойной трюк:
-${getDos()}`,
-        rateKb
-      );
+  if (text === "📚 Справка") {
+    const info =
+      "📚 <b>Краткая справка:</b>\n\n" +
+      "UNO — одинарные трюки\n" +
+      "DOS — двойные\n" +
+      "TRI — тройные\n" +
+      "ЖЕСТЬ — самые сложные\n" +
+      "Комбо через темп — элемент, пауза, следующий\n" +
+      "Комбо в темп — без пауз\n" +
+      "Комбо вомбо — самые жёсткие\n" +
+      "Поле чудес — рандом";
+    return bot.sendMessage(chatId, info, {
+      parse_mode: "HTML",
+      reply_markup: mainMenu.reply_markup
+    });
+  }
 
-    case "tri":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        `TRI — тройной трюк:
-${getTri()}`,
-        rateKb
-      );
+  // ================= UNO меню =================
+  if (text === "UNO — одинарные") {
+    return bot.sendMessage(chatId, "UNO — одинарный трюк:\n" + getUno(), rateMenu);
+  }
 
-    case "hard":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        `ЖЕСТЬ — очень сложный трюк:
-${getHard()}`,
-        rateKb
-      );
+  if (text === "DOS — двойные") {
+    return bot.sendMessage(chatId, "DOS — двойной трюк:\n" + getDos(), rateMenu);
+  }
 
-    // Комбо
-    case "combo_cherez":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        `Комбо через темп:
-(элемент — темп — двойное — двойное)
+  if (text === "TRI — тройные") {
+    return bot.sendMessage(chatId, "TRI — тройной трюк:\n" + getTri(), rateMenu);
+  }
 
-${getComboCherez()}`,
-        rateKb
-      );
+  if (text === "ЖЕСТЬ — очень сложные") {
+    return bot.sendMessage(chatId, "ЖЕСТЬ — сложный трюк:\n" + getHard(), rateMenu);
+  }
 
-    case "combo_vtemp":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        `Комбо в темп:
-(элемент элемент, сальто два три три)
+  // ================= Комбо меню =================
+  if (text === "Комбо через темп") {
+    return bot.sendMessage(
+      chatId,
+      "Комбо через темп:\n\n" + getComboCherez(),
+      rateMenu
+    );
+  }
 
-${getComboVTemp()}`,
-        rateKb
-      );
+  if (text === "Комбо в темп") {
+    return bot.sendMessage(
+      chatId,
+      "Комбо в темп:\n\n" + getComboVTemp(),
+      rateMenu
+    );
+  }
 
-    case "combo_hard":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        `Комбо вомбо (hardcore):
+  if (text === "Комбо вомбо (hardcore)") {
+    return bot.sendMessage(
+      chatId,
+      "Комбо вомбо (hardcore):\n\n" + getComboHard(),
+      rateMenu
+    );
+  }
 
-${getComboHard()}`,
-        rateKb
-      );
+  // ================= Рейтинг =================
+  if (text === "🔥 Норм") {
+    return bot.sendMessage(chatId, "Записал как 🔥", mainMenu);
+  }
 
-    // Поле чудес
-    case "any":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        `🎲 Поле чудес — случайный трюк:
-${getAny()}`,
-        rateKb
-      );
+  if (text === "💩 Так себе") {
+    return bot.sendMessage(chatId, "Понял, не зашло 💩", mainMenu);
+  }
 
-    // Справка
-    case "help":
-      return edit(
-        bot,
-        chatId,
-        msgId,
-        "📚 <b>Краткая справка</b>" +
-          "UNO — одинарные трюки " +
-          "DOS — двойные " +
-          "TRI — тройные " +
-          "ЖЕСТЬ — самые сложные " +
-          "Комбо через темп — элемент, пауза, следующий " +
-          "Комбо в темп — всё подряд, без пауз " +
-          "Комбо вомбо — самые жёсткие связки " +
-          "Поле чудес — рандомный трюк из всех списков.",
-        mainMenuKb
-      );
-
-    // Оценка 🔥 / 💩
-    case "rate_good": {
-      const stickerId =
-        goodStickers[Math.floor(Math.random() * goodStickers.length)];
-      await bot.answerCallbackQuery(q.id, { text: "Записал как 🔥" });
-      if (stickerId) {
-        await bot.sendSticker(chatId, stickerId);
-      }
-      break;
-    }
-
-    case "rate_bad": {
-      const stickerId =
-        badStickers[Math.floor(Math.random() * badStickers.length)];
-      await bot.answerCallbackQuery(q.id, { text: "Понял, не зашло 💩" });
-      if (stickerId) {
-        await bot.sendSticker(chatId, stickerId);
-      }
-      break;
-    }
+  // ================= BACK =================
+  if (text === "⬅️ Назад") {
+    return bot.sendMessage(chatId, "🏠 Главное меню:", mainMenu);
   }
 });
