@@ -30,43 +30,45 @@ const EM = {
   restart: "🔄"
 };
 
-// ============ UNIVERSAL SNAP FX ============
-async function thanosEdit(chatId, msgId, finalText, finalKb) {
+// ============ ULTRA THANOS FX ============
+// Везде используется один эффект.
+async function ultraThanosEdit(ctx, finalText, finalKb) {
   try {
-    const frames = [
-      "🫰",
-      "🫰.",
-      "🫰..",
-      "🫰...",
-      "🌫️",
-      "🌫️.",
-      "🌫️..",
-      "🌫️...",
-      "✨",
-      "✨.",
-      "✨..",
-      "✨..."
+    const chatId = ctx.chat.id;
+    const msgId = ctx.callbackQuery.message.message_id;
+
+    const steps = [
+      "🫰 Щёлк...",
+      "🌪️ Пошло расслоение материи...",
+      "🌫️ Реальность рассыпается на пиксели...",
+      "💫 Пространство собирается заново...",
+      "✨ Создаю новую вселенную..."
     ];
 
-    // плавное растворение
-    for (const f of frames) {
-      await bot.editMessageText(f, {
+    for (const t of steps) {
+      await bot.editMessageText(t, {
         chat_id: chatId,
         message_id: msgId
-      });
-      await new Promise(res => setTimeout(res, 200));  
-      // ставь 200–260 если хочешь ещё медленнее
+      }).catch(() => {});
+      await new Promise(res => setTimeout(res, 220));
     }
 
-    // финальное появление
-    await bot.editMessageText(finalText, {
+    return bot.editMessageText(finalText, {
       chat_id: chatId,
       message_id: msgId,
       parse_mode: "HTML",
       reply_markup: finalKb
     });
 
-  } catch (_) {}
+  } catch (err) {
+    console.log("ULTRA THANOS ERROR:", err);
+  }
+}
+
+// удобный вызов ультра-таноса
+async function showMenuThanos(ctx, text, keyboard) {
+  await ctx.answerCbQuery().catch(() => {});
+  return ultraThanosEdit(ctx, text, keyboard);
 }
 
 
@@ -152,57 +154,52 @@ async function processTrick(chatId, msgId, title, fn) {
 }
 
 // ============ START ============
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
 
-  bot.sendMessage(chatId,
+  const sent = await bot.sendMessage(chatId, "Загрузка интерфейса...");
+
+  // используем ультра-таноса даже при /start
+  await ultraThanosEdit(
+    { chat: { id: chatId }, callbackQuery: { message: sent } },
     EM.brand + " <b>TRICK MACHINE — RIZZ EDITION</b>\n\n" +
     "Добро пожаловать. Выбирай режим.\n",
-    {
-      parse_mode: "HTML",
-      reply_markup: mainMenu
-    }
+    mainMenu
   );
 });
 
 // ============ CALLBACK HANDLER ============
-bot.on("callback_query", async (q) => {
-  const chatId = q.message.chat.id;
-  const msgId = q.message.message_id;
-  const data = q.data;
+bot.on("callback_query", async (ctx) => {
+  const data = ctx.data;
 
   // MAIN
   if (data === "back_main") {
-    return thanosEdit(
-      chatId,
-      msgId,
+    return showMenuThanos(
+      ctx,
       "🏠 <b>Главное меню</b>",
       mainMenu
     );
   }
 
   if (data === "restart") {
-    return thanosEdit(
-      chatId,
-      msgId,
+    return showMenuThanos(
+      ctx,
       "🔄 <b>Полный рестарт интерфейса выполнен.</b>",
       mainMenu
     );
   }
 
   if (data === "combo_menu") {
-    return thanosEdit(
-      chatId,
-      msgId,
+    return showMenuThanos(
+      ctx,
       EM.combo + " <b>COMBOWOMBO</b>\nВыбери тип связки:",
       combosMenu
     );
   }
 
   if (data === "tricks_menu") {
-    return thanosEdit(
-      chatId,
-      msgId,
+    return showMenuThanos(
+      ctx,
       EM.tri + " <b>Поле Чудес — выбери сложность:</b>",
       tricksMenu
     );
@@ -218,39 +215,42 @@ bot.on("callback_query", async (q) => {
       EM.combo + " Комбо через темп\n⚡ В темп\n💀 Hardcore\n\n" +
       "<i>Жми кнопки, текст игнорю.</i>";
 
-    return thanosEdit(chatId, msgId, help, mainMenu);
+    return showMenuThanos(ctx, help, mainMenu);
   }
 
   // RANDOM
   if (data === "random") {
-    return processTrick(chatId, msgId, "RANDOM TRICK", getAny);
+    return processTrick(
+      ctx.message.chat.id,
+      ctx.message.message_id,
+      "RANDOM TRICK",
+      getAny
+    );
   }
 
   // TRICKS
-  if (data === "uno") return processTrick(chatId, msgId, EM.uno + " UNO", getUno);
-  if (data === "dos") return processTrick(chatId, msgId, EM.dos + " DOS", getDos);
-  if (data === "tri") return processTrick(chatId, msgId, EM.tri + " TRI", getTri);
-  if (data === "hard") return processTrick(chatId, msgId, EM.hard + " ЖЕСТЬ", getHard);
+  if (data === "uno") return processTrick(ctx.message.chat.id, ctx.message.message_id, EM.uno + " UNO", getUno);
+  if (data === "dos") return processTrick(ctx.message.chat.id, ctx.message.message_id, EM.dos + " DOS", getDos);
+  if (data === "tri") return processTrick(ctx.message.chat.id, ctx.message.message_id, EM.tri + " TRI", getTri);
+  if (data === "hard") return processTrick(ctx.message.chat.id, ctx.message.message_id, EM.hard + " ЖЕСТЬ", getHard);
 
   // COMBOS
-  if (data === "c_cherez") return processTrick(chatId, msgId, EM.combo + " Через темп", getComboCherez);
-  if (data === "c_temp") return processTrick(chatId, msgId, "⚡ В темп", getComboVTemp);
-  if (data === "c_hard") return processTrick(chatId, msgId, EM.hard + " Hardcore", getComboHard);
+  if (data === "c_cherez") return processTrick(ctx.message.chat.id, ctx.message.message_id, EM.combo + " Через темп", getComboCherez);
+  if (data === "c_temp") return processTrick(ctx.message.chat.id, ctx.message.message_id, "⚡ В темп", getComboVTemp);
+  if (data === "c_hard") return processTrick(ctx.message.chat.id, ctx.message.message_id, EM.hard + " Hardcore", getComboHard);
 
   // RATING
   if (data === "rate_norm") {
-    return thanosEdit(
-      chatId,
-      msgId,
+    return showMenuThanos(
+      ctx,
       EM.success + " Понял. Записал.",
       mainMenu
     );
   }
 
   if (data === "rate_bad") {
-    return thanosEdit(
-      chatId,
-      msgId,
+    return showMenuThanos(
+      ctx,
       EM.fail + " Приму к сведению.",
       mainMenu
     );
