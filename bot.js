@@ -1,5 +1,5 @@
-const TelegramBot = require('node-telegram-bot-api');
-require('dotenv').config();
+const TelegramBot = require("node-telegram-bot-api");
+require("dotenv").config();
 
 const {
   getUno,
@@ -10,45 +10,46 @@ const {
   getComboVTemp,
   getComboHard,
   getAny,
-} = require('./tricks');
-const { edit } = require('./utils');
+} = require("./tricks");
+
+const { edit } = require("./utils");
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 // ===== Клавиатуры =====
 const mainMenuKb = {
   inline_keyboard: [
-    [{ text: '🎩 UNO / DOS / TRI / ЖЕСТЬ', callback_data: 'uno_menu' }],
-    [{ text: '🌀 Комбо блок', callback_data: 'combo_menu' }],
-    [{ text: '🎲 Поле чудес (рандом)', callback_data: 'any' }],
-    [{ text: '📚 Справка', callback_data: 'help' }],
+    [{ text: "🎩 UNO / DOS / TRI / ЖЕСТЬ", callback_data: "uno_menu" }],
+    [{ text: "🌀 Комбо блок", callback_data: "combo_menu" }],
+    [{ text: "🎲 Поле чудес (рандом)", callback_data: "any" }],
+    [{ text: "📚 Справка", callback_data: "help" }],
   ],
 };
 
 const unoMenuKb = {
   inline_keyboard: [
-    [{ text: 'UNO — одинарные', callback_data: 'uno' }],
-    [{ text: 'DOS — двойные', callback_data: 'dos' }],
-    [{ text: 'TRI — тройные', callback_data: 'tri' }],
-    [{ text: 'ЖЕСТЬ — очень сложные', callback_data: 'hard' }],
-    [{ text: '⬅️ Назад в меню', callback_data: 'back_main' }],
+    [{ text: "UNO — одинарные", callback_data: "uno" }],
+    [{ text: "DOS — двойные", callback_data: "dos" }],
+    [{ text: "TRI — тройные", callback_data: "tri" }],
+    [{ text: "ЖЕСТЬ — очень сложные", callback_data: "hard" }],
+    [{ text: "⬅️ Назад в меню", callback_data: "back_main" }],
   ],
 };
 
 const comboMenuKb = {
   inline_keyboard: [
-    [{ text: 'Комбо через темп', callback_data: 'combo_cherez' }],
-    [{ text: 'Комбо в темп', callback_data: 'combo_vtemp' }],
-    [{ text: 'Комбо вомбо (hardcore)', callback_data: 'combo_hard' }],
-    [{ text: '⬅️ Назад в меню', callback_data: 'back_main' }],
+    [{ text: "Комбо через темп", callback_data: "combo_cherez" }],
+    [{ text: "Комбо в темп", callback_data: "combo_vtemp" }],
+    [{ text: "Комбо вомбо (hardcore)", callback_data: "combo_hard" }],
+    [{ text: "⬅️ Назад в меню", callback_data: "back_main" }],
   ],
 };
 
 // ===== START =====
-bot.onText(//start/, (msg) => {
+bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
 
-  const intro =
+  const intro = 
 `👋 <b>Здарова, артист.</b>
 
 Ты попал в генератор трюков.  
@@ -61,142 +62,142 @@ bot.onText(//start/, (msg) => {
 `;
 
   bot.sendMessage(chatId, intro, {
-    parse_mode: 'HTML',
+    parse_mode: "HTML",
     reply_markup: mainMenuKb,
   });
 });
 
 // ===== CALLBACKS =====
-bot.on('callback_query', (q) => {
+bot.on("callback_query", (q) => {
   const chatId = q.message.chat.id;
   const msgId = q.message.message_id;
 
   switch (q.data) {
-    case 'back_main':
+    case "back_main":
       return edit(
         bot,
         chatId,
         msgId,
-        '🏠 <b>Главное меню</b>
-Выбирай, что сгенерировать:',
-        mainMenuKb,
+        `🏠 <b>Главное меню</b>
+Выбирай, что сгенерировать:`,
+        mainMenuKb
       );
 
-    case 'uno_menu':
+    case "uno_menu":
       return edit(
         bot,
         chatId,
         msgId,
-        '🎩 <b>Одинарные трюки</b>
-Выбери уровень:',
-        unoMenuKb,
+        `🎩 <b>Одинарные трюки</b>
+Выбери уровень:`,
+        unoMenuKb
       );
 
-    case 'combo_menu':
+    case "combo_menu":
       return edit(
         bot,
         chatId,
         msgId,
-        '🌀 <b>Комбо блок</b>
-Выбери тип комбо:',
-        comboMenuKb,
+        `🌀 <b>Комбо блок</b>
+Выбери тип комбо:`,
+        comboMenuKb
       );
 
     // Одиночные трюки
-    case 'uno':
+    case "uno":
       return edit(
         bot,
         chatId,
         msgId,
-        'UNO — одинарный трюк:
-' + getUno(),
-        unoMenuKb,
+        `UNO — одинарный трюк:
+${getUno()}`,
+        unoMenuKb
       );
 
-    case 'dos':
+    case "dos":
       return edit(
         bot,
         chatId,
         msgId,
-        'DOS — двойной трюк:
-' + getDos(),
-        unoMenuKb,
+        `DOS — двойной трюк:
+${getDos()}`,
+        unoMenuKb
       );
 
-    case 'tri':
+    case "tri":
       return edit(
         bot,
         chatId,
         msgId,
-        'TRI — тройной трюк:
-' + getTri(),
-        unoMenuKb,
+        `TRI — тройной трюк:
+${getTri()}`,
+        unoMenuKb
       );
 
-    case 'hard':
+    case "hard":
       return edit(
         bot,
         chatId,
         msgId,
-        'ЖЕСТЬ — очень сложный трюк:
-' + getHard(),
-        unoMenuKb,
+        `ЖЕСТЬ — очень сложный трюк:
+${getHard()}`,
+        unoMenuKb
       );
 
     // Комбо
-    case 'combo_cherez':
+    case "combo_cherez":
       return edit(
         bot,
         chatId,
         msgId,
-        'Комбо через темп:
+        `Комбо через темп:
 (элемент — темп — двойное — двойное)
 
-' + getComboCherez(),
-        comboMenuKb,
+${getComboCherez()}`,
+        comboMenuKb
       );
 
-    case 'combo_vtemp':
+    case "combo_vtemp":
       return edit(
         bot,
         chatId,
         msgId,
-        'Комбо в темп:
+        `Комбо в темп:
 (элемент элемент, сальто два три три)
 
-' + getComboVTemp(),
-        comboMenuKb,
+${getComboVTemp()}`,
+        comboMenuKb
       );
 
-    case 'combo_hard':
+    case "combo_hard":
       return edit(
         bot,
         chatId,
         msgId,
-        'Комбо вомбо (hardcore):
+        `Комбо вомбо (hardcore):
 
-' + getComboHard(),
-        comboMenuKb,
+${getComboHard()}`,
+        comboMenuKb
       );
 
-    // Поле чудес / случайный трюк
-    case 'any':
+    // Поле чудес
+    case "any":
       return edit(
         bot,
         chatId,
         msgId,
-        '🎲 Поле чудес — случайный трюк:
-' + getAny(),
-        mainMenuKb,
+        `🎲 Поле чудес — случайный трюк:
+${getAny()}`,
+        mainMenuKb
       );
 
     // Справка
-    case 'help':
+    case "help":
       return edit(
         bot,
         chatId,
         msgId,
-`📚 <b>Краткая справка</b>
+        `📚 <b>Краткая справка</b>
 
 UNO — одинарные трюки.  
 DOS — двойные.  
@@ -208,7 +209,7 @@ TRI — тройные.
 Комбо вомбо — самые жёсткие связки.
 
 Поле чудес — рандомный трюк из всех списков.`,
-        mainMenuKb,
+        mainMenuKb
       );
   }
 });
