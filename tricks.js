@@ -1,43 +1,33 @@
-"два в рассрочку",
-  "два с пол винтом",
-  "два вперед",
-  "два твиста",
-  "винт заднее",
-];
+const fs = require('fs');
 
-const tricksTri = [
-  "тройное сальто",
-  "тройное углом",
-  "три твиста",
-  "540°",
-  "720°",
-  "три вперед",
-  "три с пол винтом",
-  "три с винтом",
-  "ЧЕТВЕРНОЕ",
-  "ПЯТЬ НАЗАД",                                                                              "ПЯТЬ ВПЕРЕД",
-  "ЧЕТЫРЕ НАЗАД",
-  "три в рассрочку",
-  "два поперек",
-  "двойное арабское",
-  "360 360",
-  "два с тремя",
-  "два с четырьмя",
-];
+const data = JSON.parse(fs.readFileSync('./tricks.json', 'utf8'));
 
-const comboCherezTemp = [
-  "сальто, два, три",
-  "сальто, два, два угла",
-  "два два два",
-];
+const random = arr => arr[Math.floor(Math.random() * arr.length)];
 
-const comboVTemp = [
-  "два два два",
-  "сальто два две штуки",
-  "сальто угол бланш",
-];
+const getUno = () => random(data.tricksUno);
+const getDos = () => random(data.tricksDos);
+const getTri = () => random(data.tricksTri);
 
-const comboHardcore = [
-  "сальто два две штуки сальто два с 180",
-  "два два два два два",
-  "сальто два три"
+const getComboCherez = () => random(data.comboCherezTemp);
+const getComboVTemp = () => random(data.comboVTemp);
+const getComboHard = () => random(data.comboHardcore);
+
+const getAny = () =>
+  random([
+    ...data.tricksUno,
+    ...data.tricksDos,
+    ...data.tricksTri,
+    ...data.comboCherezTemp,
+    ...data.comboVTemp,
+    ...data.comboHardcore,
+  ]);
+
+module.exports = {
+  getUno,
+  getDos,
+  getTri,
+  getComboCherez,
+  getComboVTemp,
+  getComboHard,
+  getAny,
+};
