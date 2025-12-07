@@ -71,7 +71,7 @@ const rateKb = {
 };
 
 // ===== START =====
-bot.onText(/\start/, async (msg) => {
+bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
 
   // Картинка / мем при запуске
