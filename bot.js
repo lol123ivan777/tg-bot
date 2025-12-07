@@ -14,7 +14,7 @@ const {
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-// EMOJI SET
+// ============ EMOJI SET ============
 const EM = {
   brand: "🖤",
   uno: "⚫",
@@ -25,226 +25,229 @@ const EM = {
   random: "🕳️",
   loading: "⚙️",
   success: "🔥",
-  fail: "💩"
+  fail: "💩",
+  back: "⬅️",
+  restart: "🔄"
 };
 
-// MAIN MENU
-const mainMenu = {
-  reply_markup: {
-    resize_keyboard: true,
-    keyboard: [
-      [{ text: "🖤   COMBOWOMBO — ЖЕСТЬ" }],
-      [{ text: "☠️   Поле Чудес — трюки" }],
-      [{ text: "🕳️   Рандомный трюк" }],
-      [{ text: "📜   Справка" }]
-    ]
-  }
-};
+// ============ UNIVERSAL SNAP FX ============
+async function thanosEdit(chatId, msgId, finalText, finalKb) {
+  try {
+    const steps = [
+      "🫰 Щёлк...",
+      "🌫️ Реальность рассыпается...",
+      "✨ Формирую новую вселенную..."
+    ];
 
-// COMBO MENU
-const combMenuKb = {
-  reply_markup: {
-    resize_keyboard: true,
-    keyboard: [
-      [{ text: "☣️   Через темп" }],
-      [{ text: "⚡   В темп" }],
-      [{ text: "💀   Hardcore" }],
-      [{ text: "⬅️   Назад" }]
-    ]
-  }
-};
+    for (const t of steps) {
+      await bot.editMessageText(t, {
+        chat_id: chatId,
+        message_id: msgId
+      });
+      await new Promise(res => setTimeout(res, 180));
+    }
 
-// TRICKS MENU
-const tricksMenuKb = {
-  reply_markup: {
-    resize_keyboard: true,
-    keyboard: [
-      [{ text: "⚫   UNO" }],
-      [{ text: "🔘   DOS" }],
-      [{ text: "☠️   TRI" }],
-      [{ text: "💀   ЖЕСТЬ" }],
-      [{ text: "⬅️   Назад" }]
-    ]
-  }
-};
+    return bot.editMessageText(finalText, {
+      chat_id: chatId,
+      message_id: msgId,
+      parse_mode: "HTML",
+      reply_markup: finalKb
+    });
 
-// RATE MENU
-const rateMenu = {
-  reply_markup: {
-    resize_keyboard: true,
-    keyboard: [
-      [{ text: "🔥   Норм" }, { text: "💩   Не зашло" }],
-      [{ text: "⬅️   Назад" }]
-    ]
-  }
-};
-
-// HELPERS
-const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
-
-async function pulseTyping(chatId, times = 2, delay = 350) {
-  for (let i = 0; i < times; i++) {
-    await bot.sendChatAction(chatId, "typing");
-    await sleep(delay);
-  }
+  } catch (_) {}
 }
 
+// ============ KEYBOARDS ============
+const mainMenu = {
+  inline_keyboard: [
+    [{ text: "🖤 COMBOWOMBO — ЖЕСТЬ", callback_data: "combo_menu" }],
+    [{ text: "☠️ Поле Чудес — трюки", callback_data: "tricks_menu" }],
+    [{ text: "🕳️ Рандомный трюк", callback_data: "random" }],
+    [{ text: "📜 Справка", callback_data: "help" }],
+    [{ text: "🔄 Рестарт", callback_data: "restart" }]
+  ]
+};
+
+const tricksMenu = {
+  inline_keyboard: [
+    [{ text: "⚫ UNO", callback_data: "uno" }],
+    [{ text: "🔘 DOS", callback_data: "dos" }],
+    [{ text: "☠️ TRI", callback_data: "tri" }],
+    [{ text: "💀 ЖЕСТЬ", callback_data: "hard" }],
+    [{ text: "⬅️ Назад", callback_data: "back_main" }]
+  ]
+};
+
+const combosMenu = {
+  inline_keyboard: [
+    [{ text: "☣️ Через темп", callback_data: "c_cherez" }],
+    [{ text: "⚡ В темп", callback_data: "c_temp" }],
+    [{ text: "💀 Hardcore", callback_data: "c_hard" }],
+    [{ text: "⬅️ Назад", callback_data: "back_main" }]
+  ]
+};
+
+const rateMenu = {
+  inline_keyboard: [
+    [
+      { text: "🔥 Норм", callback_data: "rate_norm" },
+      { text: "💩 Не зашло", callback_data: "rate_bad" }
+    ],
+    [{ text: "⬅️ Назад", callback_data: "back_main" }]
+  ]
+};
+
+// ============ HELPERS ============
 function escapeHtml(text) {
-  if (!text && text !== 0) return "";
   return String(text)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
 
-async function animateAndEdit(chatId, title, generatorFn, loading, keyboard) {
-  const sent = await bot.sendMessage(chatId, loading);
-
-  await pulseTyping(chatId);
-
+async function processTrick(chatId, msgId, title, fn) {
   try {
-    await bot.editMessageText(loading + " " + EM.loading, {
-      chat_id: chatId,
-      message_id: sent.message_id
-    });
-    await sleep(300);
-    await bot.editMessageText(loading + " " + EM.loading + " " + EM.loading, {
-      chat_id: chatId,
-      message_id: sent.message_id
-    });
-    await sleep(300);
-  } catch (_) {}
+    const wait = [
+      EM.loading + " Думаю...",
+      EM.loading + " " + EM.loading + " Генерация...",
+      "✨ Почти готово..."
+    ];
 
-  let content = "Ошибка.";
-  try {
-    content = generatorFn();
-  } catch (_) {}
+    for (const step of wait) {
+      await bot.editMessageText(step, {
+        chat_id: chatId,
+        message_id: msgId
+      });
+      await new Promise(res => setTimeout(res, 200));
+    }
 
-  const msg =
-    "<pre>" + EM.brand + " — TRICK MACHINE — IVAN MODE</pre>\n\n" +
-    "<b>" + escapeHtml(title) + "</b>\n\n" +
-    "<code>" + escapeHtml(content) + "</code>\n\n" +
-    EM.success + " <i>Нажми оценку или назад</i>";
+    const content = fn();
 
-  try {
-    await bot.editMessageText(msg, {
+    const card =
+      "<b>" + title + "</b>\n\n" +
+      "<code>" + escapeHtml(content) + "</code>\n\n" +
+      EM.success + " Оценивай.";
+
+    await bot.editMessageText(card, {
       chat_id: chatId,
-      message_id: sent.message_id,
+      message_id: msgId,
       parse_mode: "HTML",
-      reply_markup: (keyboard || rateMenu).reply_markup
+      reply_markup: rateMenu
     });
-  } catch (_) {
-    await bot.sendMessage(chatId, msg, {
-      parse_mode: "HTML",
-      reply_markup: (keyboard || rateMenu).reply_markup
-    });
-  }
+
+  } catch (_) {}
 }
 
-// START
-bot.onText(/\/start/, async (msg) => {
+// ============ START ============
+bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
 
-  const banner =
-    EM.brand + " <b>TRICK MACHINE — IVAN EDITION</b>\n\n" +
-    "Давай посмотрим куда тебя заведет фортуна.\n" +
-    "Выбирай режим — и получай трюк. И помни, не имеешь права отказаться😄🗿";
-
-  await bot.sendMessage(chatId, banner, {
-    parse_mode: "HTML",
-    reply_markup: mainMenu.reply_markup
-  });
+  bot.sendMessage(chatId,
+    EM.brand + " <b>TRICK MACHINE — RIZZ EDITION</b>\n\n" +
+    "Добро пожаловать. Выбирай режим.\n",
+    {
+      parse_mode: "HTML",
+      reply_markup: mainMenu
+    }
+  );
 });
 
-// MESSAGE HANDLER
-bot.on("message", async (msg) => {
-  const text = msg.text && msg.text.trim();
-  const chatId = msg.chat.id;
-  if (!text) return;
+// ============ CALLBACK HANDLER ============
+bot.on("callback_query", async (q) => {
+  const chatId = q.message.chat.id;
+  const msgId = q.message.message_id;
+  const data = q.data;
 
-  if (text === "🖤   COMBOWOMBO — ЖЕСТЬ") {
-    return bot.sendMessage(chatId, EM.combo + " Выбери тип:", combMenuKb);
-  }
-
-  if (text === "☠️   Поле Чудес — трюки") {
-    return bot.sendMessage(chatId, EM.tri + " Выбери сложность:", tricksMenuKb);
-  }
-
-  if (text === "🕳️   Рандомный трюк") {
-    return animateAndEdit(
+  // MAIN
+  if (data === "back_main") {
+    return thanosEdit(
       chatId,
-      "RANDOM TRICK",
-      () => getAny(),
-      EM.loading + " Кручу вселенную...",
-      rateMenu
+      msgId,
+      "🏠 <b>Главное меню</b>",
+      mainMenu
     );
   }
 
-  if (text === "📜   Справка") {
+  if (data === "restart") {
+    return thanosEdit(
+      chatId,
+      msgId,
+      "🔄 <b>Полный рестарт интерфейса выполнен.</b>",
+      mainMenu
+    );
+  }
+
+  if (data === "combo_menu") {
+    return thanosEdit(
+      chatId,
+      msgId,
+      EM.combo + " <b>COMBOWOMBO</b>\nВыбери тип связки:",
+      combosMenu
+    );
+  }
+
+  if (data === "tricks_menu") {
+    return thanosEdit(
+      chatId,
+      msgId,
+      EM.tri + " <b>Поле Чудес — выбери сложность:</b>",
+      tricksMenu
+    );
+  }
+
+  if (data === "help") {
     const help =
       "<b>RIZZ HELP</b>\n\n" +
-      EM.uno + " UNO — простые элементы\n" +
-      EM.dos + " DOS — средняя сложность\n" +
-      EM.tri + " TRI — жёсткие элементы\n" +
-      EM.hard + " ЖЕСТЬ — максимальная сложность\n\n" +
-      EM.combo + " Комбо через темп — паузы\n" +
-      "⚡ В темп — без остановок\n" +
-      "💀 Hardcore — экстремальная связка\n\n" +
-      "<i>Бот принимает только кнопки.</i>";
+      EM.uno + " UNO — базовые элементы\n" +
+      EM.dos + " DOS — средние\n" +
+      EM.tri + " TRI — сложные\n" +
+      EM.hard + " ЖЕСТЬ — хардкор\n\n" +
+      EM.combo + " Комбо через темп\n⚡ В темп\n💀 Hardcore\n\n" +
+      "<i>Жми кнопки, текст игнорю.</i>";
 
-    return bot.sendMessage(chatId, help, {
-      parse_mode: "HTML",
-      reply_markup: mainMenu.reply_markup
-    });
+    return thanosEdit(chatId, msgId, help, mainMenu);
+  }
+
+  // RANDOM
+  if (data === "random") {
+    return processTrick(chatId, msgId, "RANDOM TRICK", getAny);
   }
 
   // TRICKS
-  if (text === "⚫   UNO") {
-    return animateAndEdit(chatId, "UNO", () => getUno(), EM.loading + " Генерация UNO...");
+  if (data === "uno") return processTrick(chatId, msgId, EM.uno + " UNO", getUno);
+  if (data === "dos") return processTrick(chatId, msgId, EM.dos + " DOS", getDos);
+  if (data === "tri") return processTrick(chatId, msgId, EM.tri + " TRI", getTri);
+  if (data === "hard") return processTrick(chatId, msgId, EM.hard + " ЖЕСТЬ", getHard);
+
+  // COMBOS
+  if (data === "c_cherez") return processTrick(chatId, msgId, EM.combo + " Через темп", getComboCherez);
+  if (data === "c_temp") return processTrick(chatId, msgId, "⚡ В темп", getComboVTemp);
+  if (data === "c_hard") return processTrick(chatId, msgId, EM.hard + " Hardcore", getComboHard);
+
+  // RATING
+  if (data === "rate_norm") {
+    return thanosEdit(
+      chatId,
+      msgId,
+      EM.success + " Понял. Записал.",
+      mainMenu
+    );
   }
 
-  if (text === "🔘   DOS") {
-    return animateAndEdit(chatId, "DOS", () => getDos(), EM.loading + " Генерация DOS...");
+  if (data === "rate_bad") {
+    return thanosEdit(
+      chatId,
+      msgId,
+      EM.fail + " Приму к сведению.",
+      mainMenu
+    );
   }
-
-  if (text === "☠️   TRI") {
-    return animateAndEdit(chatId, "TRI", () => getTri(), EM.loading + " Генерация TRI...");
-  }
-
-  if (text === "💀   ЖЕСТЬ") {
-    return animateAndEdit(chatId, "ЖЕСТЬ", () => getHard(), EM.loading + " Генерация жести...");
-  }
-
-  // COMBO
-  if (text === "☣️   Через темп") {
-    return animateAndEdit(chatId, "Комбо через темп", () => getComboCherez(), EM.loading + " Собираю связку...");
-  }
-
-  if (text === "⚡   В темп") {
-    return animateAndEdit(chatId, "Комбо в темп", () => getComboVTemp(), EM.loading + " Составляю...");
-  }
-
-  if (text === "💀   Hardcore") {
-    return animateAndEdit(chatId, "HARDCORE COMBO", () => getComboHard(), EM.loading + " Ломаю пространство...");
-  }
-
-  // RATE
-  if (text === "🔥   Норм") {
-    return bot.sendMessage(chatId, EM.success + " Принял.", mainMenu);
-  }
-
-  if (text === "💩   Не зашло") {
-    return bot.sendMessage(chatId, EM.fail + " Учту.", mainMenu);
-  }
-
-  // BACK
-  if (text === "⬅️   Назад") {
-    return bot.sendMessage(chatId, "🏠 Главное меню:", mainMenu);
-  }
-
-  return;
 });
 
-// ERRORS
-process.on("uncaughtException", (err) => console.error("UNCAUGHT:", err));
-process.on("unhandledRejection", (reason) => console.error("UNHANDLED:", reason));
+// ============ ERROR LOG ============
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT:", err.stack || err);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("UNHANDLED:", reason);
+});
